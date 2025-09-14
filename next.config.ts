@@ -1,3 +1,4 @@
+require('dotenv').config({ path: './.env.local' });
 import createNextIntlPlugin from 'next-intl/plugin';
 import type { NextConfig } from "next";
 

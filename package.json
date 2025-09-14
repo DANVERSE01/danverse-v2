@@ -15,6 +15,7 @@
     "@supabase/supabase-js": "^2.57.4",
     "@types/three": "^0.180.0",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.2",
     "framer-motion": "^12.23.12",
     "leva": "^0.10.0",
     "next": "15.5.3",
