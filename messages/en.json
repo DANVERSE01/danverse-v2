@@ -1,0 +1,86 @@
+{
+  "navigation": {
+    "home": "Home",
+    "services": "Services",
+    "portfolio": "Portfolio",
+    "academy": "Academy",
+    "about": "About",
+    "contact": "Contact",
+    "getStarted": "Get Started"
+  },
+  "hero": {
+    "title": "Enter DANVERSE: Where innovation accelerates your success.",
+    "subtitle": "We transform businesses through cutting-edge digital solutions and creative strategies that drive measurable results.",
+    "cta": "Explore Our Services"
+  },
+  "services": {
+    "title": "Our Services",
+    "globalCreative": {
+      "title": "Global Creative Designs",
+      "description": "Striking visual identities and creative campaigns that capture attention and communicate your brand story across global markets."
+    },
+    "brandTransformation": {
+      "title": "Brand Transformation",
+      "description": "Complete brand evolution strategies that align your identity with market demands and future growth opportunities."
+    },
+    "endToEndCampaigns": {
+      "title": "End-to-End Campaigns",
+      "description": "Comprehensive marketing campaigns from concept to execution, optimized for maximum engagement and conversion."
+    },
+    "webDevelopment": {
+      "title": "High-End Web Development",
+      "description": "Premium website solutions with cutting-edge technology, seamless user experiences, and exceptional performance."
+    },
+    "fullStack": {
+      "title": "Full-Stack Development",
+      "description": "Complete digital solutions from frontend interfaces to backend infrastructure, tailored to your business needs."
+    },
+    "academy": {
+      "title": "DANVERSE Academy",
+      "description": "Industry-leading training programs to upskill your team in the latest digital technologies and methodologies."
+    }
+  },
+  "contact": {
+    "title": "Get In Touch",
+    "info": "Contact Information",
+    "whatsapp": "WhatsApp/Telegram",
+    "whatsappNumber": "+20 1207346648 (Messages Only)",
+    "email": "Email",
+    "emailAddress": "danverseai@outlook.com",
+    "instagram": "Instagram",
+    "instagramHandle": "@muhammedd_adel",
+    "form": {
+      "name": "Full Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "service": "Service Interested In",
+      "company": "Company",
+      "budget": "Budget Range",
+      "message": "Message",
+      "submit": "Send Message",
+      "selectService": "Select a service",
+      "selectBudget": "Select budget range"
+    }
+  },
+  "footer": {
+    "company": "Company",
+    "services": "Services",
+    "resources": "Resources",
+    "legal": "Legal",
+    "copyright": "© 2024 DANVERSE - by Dan / Muhammed Adel. All rights reserved.",
+    "privacyPolicy": "Privacy Policy",
+    "terms": "Terms of Service"
+  },
+  "consent": {
+    "message": "We use cookies and analytics to improve your experience. By continuing, you agree to our use of these technologies.",
+    "accept": "Accept All",
+    "reject": "Reject All"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success!",
+    "enable3D": "Enable 3D Experience"
+  }
+}
+
