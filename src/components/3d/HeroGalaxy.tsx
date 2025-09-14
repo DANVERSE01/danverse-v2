@@ -1,17 +1,14 @@
 'use client';
 
 import { Canvas } from '@react-three/fiber';
-import { Suspense, useRef, useMemo, useEffect, useState } from 'react';
+import { Suspense, useRef, useMemo, useEffect, useState, useCallback } from 'react';
 import { 
   ScrollControls, 
   useScroll, 
   Stars,
   Float,
-  useTexture,
   Sphere,
   Ring,
-  Text3D,
-  Center,
   Environment
 } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
@@ -31,12 +28,37 @@ const NEON_COLORS = {
   gold: '#FFC400'
 };
 
-// Parametric ring component with instancing
-function ParametricRings() {
+// Performance monitoring hook
+function usePerformanceMonitor() {
+  const [fps, setFps] = useState(60);
+  const [lowPerformance, setLowPerformance] = useState(false);
+  const frameCount = useRef(0);
+  const lastTime = useRef(performance.now());
+  
+  useFrame(() => {
+    frameCount.current++;
+    const now = performance.now();
+    
+    if (now - lastTime.current >= 1000) {
+      const currentFps = (frameCount.current * 1000) / (now - lastTime.current);
+      setFps(currentFps);
+      setLowPerformance(currentFps < 45);
+      
+      frameCount.current = 0;
+      lastTime.current = now;
+    }
+  });
+  
+  return { fps, lowPerformance };
+}
+
+// Optimized parametric ring component with LOD
+function ParametricRings({ lowPerformance }: { lowPerformance: boolean }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const scroll = useScroll();
   
-  const ringCount = 50;
+  const ringCount = lowPerformance ? 20 : 50;
+  const segments = lowPerformance ? 8 : 16;
   const dummy = useMemo(() => new THREE.Object3D(), []);
   
   useFrame((state) => {
@@ -73,7 +95,7 @@ function ParametricRings() {
   
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, ringCount]}>
-      <ringGeometry args={[0.8, 1.2, 16]} />
+      <ringGeometry args={[0.8, 1.2, segments]} />
       <meshBasicMaterial 
         color={NEON_COLORS.blue} 
         transparent 
@@ -84,10 +106,13 @@ function ParametricRings() {
   );
 }
 
-// Floating parametric shapes
-function ParametricShapes() {
+// Optimized floating shapes with reduced complexity
+function ParametricShapes({ lowPerformance }: { lowPerformance: boolean }) {
   const groupRef = useRef<THREE.Group>(null);
   const scroll = useScroll();
+  
+  const sphereSegments = lowPerformance ? 16 : 32;
+  const ringSegments = lowPerformance ? 8 : 16;
   
   useFrame((state) => {
     if (!groupRef.current) return;
@@ -103,22 +128,26 @@ function ParametricShapes() {
   return (
     <group ref={groupRef}>
       <Float speed={2} rotationIntensity={1} floatIntensity={2}>
-        <Sphere args={[0.5, 32, 32]} position={[3, 2, 0]}>
+        <Sphere args={[0.5, sphereSegments, sphereSegments]} position={[3, 2, 0]}>
           <meshBasicMaterial color={NEON_COLORS.pink} transparent opacity={0.8} />
         </Sphere>
       </Float>
       
-      <Float speed={1.5} rotationIntensity={2} floatIntensity={1}>
-        <Sphere args={[0.3, 16, 16]} position={[-2, -1, 2]}>
-          <meshBasicMaterial color={NEON_COLORS.green} transparent opacity={0.7} />
-        </Sphere>
-      </Float>
-      
-      <Float speed={3} rotationIntensity={0.5} floatIntensity={3}>
-        <Ring args={[0.5, 0.8, 16]} position={[0, 3, -2]}>
-          <meshBasicMaterial color={NEON_COLORS.yellow} transparent opacity={0.6} side={THREE.DoubleSide} />
-        </Ring>
-      </Float>
+      {!lowPerformance && (
+        <>
+          <Float speed={1.5} rotationIntensity={2} floatIntensity={1}>
+            <Sphere args={[0.3, 16, 16]} position={[-2, -1, 2]}>
+              <meshBasicMaterial color={NEON_COLORS.green} transparent opacity={0.7} />
+            </Sphere>
+          </Float>
+          
+          <Float speed={3} rotationIntensity={0.5} floatIntensity={3}>
+            <Ring args={[0.5, 0.8, ringSegments]} position={[0, 3, -2]}>
+              <meshBasicMaterial color={NEON_COLORS.yellow} transparent opacity={0.6} side={THREE.DoubleSide} />
+            </Ring>
+          </Float>
+        </>
+      )}
     </group>
   );
 }
@@ -128,11 +157,26 @@ function Scene() {
   const { camera, gl } = useThree();
   const scroll = useScroll();
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const { fps, lowPerformance } = usePerformanceMonitor();
   
-  // Mouse tracking for pointer tilt
+  // Detect mobile device
   useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Mouse tracking for pointer tilt (disabled on mobile)
+  useEffect(() => {
+    if (isMobile) return;
+    
     const handleMouseMove = (event: MouseEvent) => {
       setMousePos({
         x: (event.clientX / window.innerWidth) * 2 - 1,
@@ -142,13 +186,13 @@ function Scene() {
     
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  }, [isMobile]);
   
   // Handle tap/click to navigate to buy page
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     const locale = pathname.split('/')[1] || 'en';
     router.push(`/${locale}/buy`);
-  };
+  }, [pathname, router]);
   
   useFrame((state) => {
     const scrollOffset = scroll.offset;
@@ -180,29 +224,31 @@ function Scene() {
       camera.position.y = 1 + progress * 5;
     }
     
-    // Pointer tilt effect
-    camera.rotation.x += (mousePos.y * 0.1 - camera.rotation.x) * 0.05;
-    camera.rotation.y += (mousePos.x * 0.1 - camera.rotation.y) * 0.05;
+    // Pointer tilt effect (disabled on mobile)
+    if (!isMobile) {
+      camera.rotation.x += (mousePos.y * 0.1 - camera.rotation.x) * 0.05;
+      camera.rotation.y += (mousePos.x * 0.1 - camera.rotation.y) * 0.05;
+    }
     
     camera.lookAt(0, 0, 0);
   });
   
   return (
     <group onClick={handleClick}>
-      {/* Starfield background */}
+      {/* Starfield background with reduced count on mobile */}
       <Stars 
         radius={100} 
         depth={50} 
-        count={5000} 
+        count={isMobile ? 2000 : 5000} 
         factor={4} 
         saturation={0} 
         fade 
         speed={1}
       />
       
-      {/* Central galaxy core */}
+      {/* Central galaxy core with reduced segments on mobile */}
       <Float speed={1} rotationIntensity={0.5} floatIntensity={0.5}>
-        <Sphere args={[1, 64, 64]} position={[0, 0, 0]}>
+        <Sphere args={[1, isMobile ? 32 : 64, isMobile ? 32 : 64]} position={[0, 0, 0]}>
           <meshBasicMaterial 
             color={NEON_COLORS.blue} 
             transparent 
@@ -212,34 +258,41 @@ function Scene() {
       </Float>
       
       {/* Parametric rings */}
-      <ParametricRings />
+      <ParametricRings lowPerformance={lowPerformance || isMobile} />
       
       {/* Floating shapes */}
-      <ParametricShapes />
+      <ParametricShapes lowPerformance={lowPerformance || isMobile} />
       
-      {/* Environment lighting */}
-      <Environment preset="night" />
+      {/* Environment lighting (disabled on mobile for performance) */}
+      {!isMobile && <Environment preset="night" />}
       
-      {/* Post-processing effects */}
-      <EffectComposer>
+      {/* Post-processing effects with auto-degradation */}
+      <EffectComposer enabled={!lowPerformance && !isMobile}>
         <Bloom 
-          intensity={0.5} 
+          intensity={lowPerformance ? 0.3 : 0.5} 
           luminanceThreshold={0.1} 
           luminanceSmoothing={0.9}
-          height={300}
+          height={lowPerformance ? 150 : 300}
         />
       </EffectComposer>
     </group>
   );
 }
 
-// Fallback component using Anime.js for reduced motion
+// Fallback component for reduced motion or WebGL issues
 function AnimeFallback() {
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
   
   useEffect(() => {
     setMounted(true);
   }, []);
+  
+  const handleClick = () => {
+    const locale = pathname.split('/')[1] || 'en';
+    router.push(`/${locale}/buy`);
+  };
   
   if (!mounted) return null;
   
@@ -302,6 +355,7 @@ function AnimeFallback() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={handleClick}
             className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg font-semibold"
           >
             Enter DANVERSE
@@ -316,6 +370,7 @@ function AnimeFallback() {
 export default function HeroGalaxy() {
   const [webGLSupported, setWebGLSupported] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   
   useEffect(() => {
     // Check WebGL support
@@ -333,8 +388,19 @@ export default function HeroGalaxy() {
       setReducedMotion(e.matches);
     };
     
+    // Check if mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
     mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+      window.removeEventListener('resize', checkMobile);
+    };
   }, []);
   
   // Use fallback if WebGL not supported or reduced motion preferred
@@ -342,17 +408,26 @@ export default function HeroGalaxy() {
     return <AnimeFallback />;
   }
   
+  // Calculate DPR based on device capabilities
+  const getDPR = () => {
+    if (isMobile) return [0.5, 1]; // Clamp DPR on mobile
+    return [1, 2]; // Allow higher DPR on desktop
+  };
+  
   return (
     <div className="relative w-full h-screen">
       <Canvas
         camera={{ position: [0, 0, 10], fov: 75 }}
         gl={{ 
-          antialias: true, 
+          antialias: !isMobile, // Disable antialiasing on mobile
           alpha: true,
-          powerPreference: 'high-performance'
+          powerPreference: 'high-performance',
+          stencil: false, // Disable stencil buffer for performance
+          depth: true
         }}
-        dpr={[1, 2]}
+        dpr={getDPR()}
         performance={{ min: 0.5 }}
+        frameloop="demand" // Only render when needed
       >
         <Suspense fallback={null}>
           <ScrollControls pages={3} damping={0.1}>
@@ -370,10 +445,10 @@ export default function HeroGalaxy() {
             transition={{ delay: 1, duration: 1 }}
             className="text-center text-white pointer-events-auto"
           >
-            <h1 className="text-6xl md:text-8xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-6xl lg:text-8xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
               DANVERSE
             </h1>
-            <p className="text-2xl mb-8 text-gray-300">
+            <p className="text-lg md:text-2xl mb-8 text-gray-300">
               Enter the Digital Universe
             </p>
             <motion.div
@@ -392,8 +467,8 @@ export default function HeroGalaxy() {
               }}
               className="inline-block"
             >
-              <button className="px-8 py-4 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-lg font-semibold text-lg hover:scale-105 transition-transform duration-300">
-                Tap to Enter
+              <button className="px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-lg font-semibold text-base md:text-lg hover:scale-105 transition-transform duration-300 touch-manipulation">
+                {isMobile ? 'Tap to Enter' : 'Click to Enter'}
               </button>
             </motion.div>
           </motion.div>

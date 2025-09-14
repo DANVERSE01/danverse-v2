@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { dataAdapter } from '@/server/adapter';
 import { requireAdminAuth } from '@/lib/auth';
 import { rateLimitRequest } from '@/lib/utils';
+
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   // Admin authentication
@@ -21,52 +23,37 @@ export async function GET(request: NextRequest) {
 
   try {
     // Get total orders count
-    const { count: totalOrders } = await supabase
-      .from('orders')
-      .select('*', { count: 'exact', head: true });
+    const { count: totalOrders } = await dataAdapter.getOrdersCount();
 
     // Get pending orders count
-    const { count: pendingOrders } = await supabase
-      .from('orders')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending');
+    const { count: pendingOrders } = await dataAdapter.getOrdersCount({ status: 'pending' });
 
-    // Get paid orders count
-    const { count: paidOrders } = await supabase
-      .from('orders')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'paid');
+    // Get confirmed orders count
+    const { count: confirmedOrders } = await dataAdapter.getOrdersCount({ status: 'confirmed' });
 
-    // Get total revenue (sum of paid orders)
-    const { data: revenueData } = await supabase
-      .from('orders')
-      .select('amount')
-      .eq('status', 'paid');
-
-    const totalRevenue = revenueData?.reduce((sum, order) => sum + (order.amount || 0), 0) || 0;
+    // Get all confirmed orders to calculate revenue
+    const { data: confirmedOrdersData } = await dataAdapter.findOrders({ status: 'confirmed' });
+    const totalRevenue = confirmedOrdersData?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
 
     // Get recent orders for activity feed
-    const { data: recentOrders } = await supabase
-      .from('orders')
-      .select('order_code, customer_name, status, amount, created_at')
-      .order('created_at', { ascending: false })
-      .limit(5);
+    const { data: recentOrders } = await dataAdapter.getRecentOrders(5);
 
     const recentActivity = recentOrders?.map(order => ({
       type: 'order',
-      description: `New order ${order.order_code} from ${order.customer_name}`,
-      timestamp: new Date(order.created_at).toLocaleString(),
+      description: `New order ${order.order_code} from ${order.name}`,
+      timestamp: new Date(order.created_at!).toLocaleString(),
       status: order.status,
-      amount: order.amount,
+      amount: order.total_amount,
     })) || [];
 
     return NextResponse.json({
       success: true,
       total: totalOrders || 0,
       pending: pendingOrders || 0,
-      paid: paidOrders || 0,
+      confirmed: confirmedOrders || 0,
       revenue: totalRevenue,
       recent: recentActivity,
+      isPreviewMode: dataAdapter.isPreviewMode(),
     });
 
   } catch (error) {
@@ -77,7 +64,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
-
-export const runtime = 'nodejs';
 

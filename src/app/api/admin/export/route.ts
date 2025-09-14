@@ -22,30 +22,31 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Get total leads count
-    const { count: totalLeads } = await dataAdapter.getLeadsCount();
+    // Only available in preview mode
+    if (!dataAdapter.isPreviewMode()) {
+      return NextResponse.json(
+        { error: 'Export is only available in preview mode' },
+        { status: 400 }
+      );
+    }
 
-    // Get recent leads for activity feed
-    const { data: recentLeads } = await dataAdapter.getRecentLeads(5);
+    // Export data as JWE
+    const jweData = await (dataAdapter as any).exportData();
+    
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `danverse-backup-${timestamp}.jwe`;
 
-    const recentActivity = recentLeads?.map(lead => ({
-      type: 'lead',
-      description: `New lead from ${lead.name}`,
-      timestamp: new Date(lead.created_at!).toLocaleString(),
-      email: lead.email,
-    })) || [];
-
-    return NextResponse.json({
-      success: true,
-      total: totalLeads || 0,
-      recent: recentActivity,
-      isPreviewMode: dataAdapter.isPreviewMode(),
+    return new Response(jweData, {
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+      },
     });
 
   } catch (error) {
-    console.error('Leads stats error:', error);
+    console.error('Export error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to export data' },
       { status: 500 }
     );
   }

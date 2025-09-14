@@ -5,7 +5,7 @@ import { rateLimitRequest } from '@/lib/utils';
 
 export const runtime = 'nodejs';
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   // Admin authentication
   const authResult = requireAdminAuth(request);
   if (!authResult.authenticated) {
@@ -22,30 +22,36 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Get total leads count
-    const { count: totalLeads } = await dataAdapter.getLeadsCount();
+    // Only available in preview mode
+    if (!dataAdapter.isPreviewMode()) {
+      return NextResponse.json(
+        { error: 'Import is only available in preview mode' },
+        { status: 400 }
+      );
+    }
 
-    // Get recent leads for activity feed
-    const { data: recentLeads } = await dataAdapter.getRecentLeads(5);
+    const body = await request.json();
+    const { jweData } = body;
 
-    const recentActivity = recentLeads?.map(lead => ({
-      type: 'lead',
-      description: `New lead from ${lead.name}`,
-      timestamp: new Date(lead.created_at!).toLocaleString(),
-      email: lead.email,
-    })) || [];
+    if (!jweData) {
+      return NextResponse.json(
+        { error: 'JWE data is required' },
+        { status: 400 }
+      );
+    }
+
+    // Import data from JWE
+    await (dataAdapter as any).importData(jweData);
 
     return NextResponse.json({
       success: true,
-      total: totalLeads || 0,
-      recent: recentActivity,
-      isPreviewMode: dataAdapter.isPreviewMode(),
+      message: 'Data imported successfully',
     });
 
   } catch (error) {
-    console.error('Leads stats error:', error);
+    console.error('Import error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to import data. Please check the backup file.' },
       { status: 500 }
     );
   }

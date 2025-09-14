@@ -15,9 +15,10 @@ interface DashboardStats {
   totalLeads: number;
   totalOrders: number;
   pendingOrders: number;
-  paidOrders: number;
+  confirmedOrders: number;
   totalRevenue: number;
   recentActivity: any[];
+  isPreviewMode?: boolean;
 }
 
 export default function AdminPage({ params }: AdminPageProps) {
@@ -26,11 +27,14 @@ export default function AdminPage({ params }: AdminPageProps) {
     totalLeads: 0,
     totalOrders: 0,
     pendingOrders: 0,
-    paidOrders: 0,
+    confirmedOrders: 0,
     totalRevenue: 0,
     recentActivity: [],
+    isPreviewMode: false,
   });
   const [loading, setLoading] = useState(true);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
 
   useEffect(() => {
     fetchDashboardStats();
@@ -38,7 +42,6 @@ export default function AdminPage({ params }: AdminPageProps) {
 
   const fetchDashboardStats = async () => {
     try {
-      // In production, these would be separate API calls
       const [leadsResponse, ordersResponse] = await Promise.all([
         fetch('/api/admin/leads/stats'),
         fetch('/api/admin/orders/stats'),
@@ -52,15 +55,73 @@ export default function AdminPage({ params }: AdminPageProps) {
           totalLeads: leadsData.total || 0,
           totalOrders: ordersData.total || 0,
           pendingOrders: ordersData.pending || 0,
-          paidOrders: ordersData.paid || 0,
+          confirmedOrders: ordersData.confirmed || 0,
           totalRevenue: ordersData.revenue || 0,
           recentActivity: [...(leadsData.recent || []), ...(ordersData.recent || [])],
+          isPreviewMode: leadsData.isPreviewMode || ordersData.isPreviewMode || false,
         });
       }
     } catch (error) {
       console.error('Failed to fetch dashboard stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportData = async () => {
+    if (!stats.isPreviewMode) return;
+    
+    setExportLoading(true);
+    try {
+      const response = await fetch('/api/admin/export');
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `danverse-backup-${new Date().toISOString().split('T')[0]}.jwe`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('Failed to export data');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export data');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const handleImportData = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !stats.isPreviewMode) return;
+
+    setImportLoading(true);
+    try {
+      const jweData = await file.text();
+      const response = await fetch('/api/admin/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jweData }),
+      });
+
+      if (response.ok) {
+        alert('Data imported successfully');
+        fetchDashboardStats(); // Refresh stats
+      } else {
+        const error = await response.json();
+        alert(`Failed to import data: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      alert('Failed to import data');
+    } finally {
+      setImportLoading(false);
+      // Reset file input
+      event.target.value = '';
     }
   };
 
@@ -98,19 +159,59 @@ export default function AdminPage({ params }: AdminPageProps) {
   return (
     <div className="min-h-screen bg-dark-950 cosmic-bg pt-32 pb-20">
       <div className="max-w-7xl mx-auto px-4">
-        {/* Header */}
+        {/* Header with Preview Mode Badge */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           className="text-center mb-12"
         >
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-neon-gradient bg-clip-text text-transparent">
-            Admin Dashboard
-          </h1>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <h1 className="text-4xl md:text-6xl font-bold bg-neon-gradient bg-clip-text text-transparent">
+              Admin Dashboard
+            </h1>
+            {stats.isPreviewMode && (
+              <div className="bg-neon-yellow/20 border border-neon-yellow/50 px-4 py-2 rounded-full">
+                <span className="text-neon-yellow font-semibold text-sm">PREVIEW MODE</span>
+              </div>
+            )}
+          </div>
           <p className="text-xl text-gray-300">
             Manage your DANVERSE platform
           </p>
+          
+          {/* Preview Mode Controls */}
+          {stats.isPreviewMode && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="mt-6 flex flex-wrap items-center justify-center gap-4"
+            >
+              <button
+                onClick={handleExportData}
+                disabled={exportLoading}
+                className="bg-neon-blue/20 hover:bg-neon-blue/30 border border-neon-blue/50 hover:border-neon-blue text-neon-blue px-6 py-2 rounded-lg transition-all duration-300 disabled:opacity-50"
+              >
+                {exportLoading ? 'Exporting...' : '📥 Download Backup (JWE)'}
+              </button>
+              
+              <label className="bg-neon-green/20 hover:bg-neon-green/30 border border-neon-green/50 hover:border-neon-green text-neon-green px-6 py-2 rounded-lg transition-all duration-300 cursor-pointer">
+                {importLoading ? 'Importing...' : '📤 Restore from Backup'}
+                <input
+                  type="file"
+                  accept=".jwe"
+                  onChange={handleImportData}
+                  disabled={importLoading}
+                  className="hidden"
+                />
+              </label>
+              
+              <div className="text-sm text-gray-400 max-w-md">
+                💡 Preview mode stores data locally. Export your data before closing the browser.
+              </div>
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Stats Grid */}
@@ -119,7 +220,7 @@ export default function AdminPage({ params }: AdminPageProps) {
             { label: 'Total Leads', value: stats.totalLeads, color: 'neon-blue', icon: '👥' },
             { label: 'Total Orders', value: stats.totalOrders, color: 'neon-pink', icon: '📦' },
             { label: 'Pending Orders', value: stats.pendingOrders, color: 'neon-yellow', icon: '⏳' },
-            { label: 'Revenue', value: `$${stats.totalRevenue.toLocaleString()}`, color: 'neon-green', icon: '💰' },
+            { label: 'Revenue', value: `${stats.totalRevenue.toLocaleString()} EGP`, color: 'neon-green', icon: '💰' },
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
