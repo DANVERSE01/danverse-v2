@@ -1,8 +1,9 @@
 {
+  "framework": "nextjs",
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "framework": "nextjs",
+  "outputDirectory": ".next",
   "functions": {
     "src/app/api/**/*.ts": {
       "runtime": "nodejs20.x"
@@ -10,8 +11,8 @@
   },
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "source": "/((?!api/).*)",
+      "destination": "/$1"
     }
   ],
   "headers": [
