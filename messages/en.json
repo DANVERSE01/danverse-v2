@@ -370,6 +370,90 @@
     "share": "Share",
     "download": "Download",
     "print": "Print"
+  },
+  "offers": {
+    "title": "Choose Your Plan",
+    "subtitle": "Transform your business with our comprehensive digital solutions. Select the perfect package for your needs.",
+    "popular": "Most Popular",
+    "oneTime": "One-time payment",
+    "startNow": "Start Now",
+    "plans": {
+      "starter": {
+        "name": "Starter Package",
+        "description": "Perfect for small businesses and startups",
+        "features": [
+          "Professional website design & development",
+          "Basic brand identity package",
+          "Social media setup (3 platforms)",
+          "SEO optimization",
+          "3 months support & maintenance"
+        ]
+      },
+      "professional": {
+        "name": "Professional Package",
+        "description": "Ideal for growing businesses",
+        "features": [
+          "Advanced website with custom features",
+          "Complete brand identity & guidelines",
+          "Social media management (6 months)",
+          "Digital marketing campaign",
+          "E-commerce integration",
+          "Analytics & reporting setup",
+          "6 months priority support"
+        ]
+      },
+      "enterprise": {
+        "name": "Enterprise Package",
+        "description": "Complete digital transformation",
+        "features": [
+          "Custom web application development",
+          "Full brand transformation",
+          "Comprehensive digital marketing",
+          "Mobile app development",
+          "Advanced analytics & automation",
+          "Team training & workshops",
+          "12 months dedicated support",
+          "Ongoing consultation & strategy"
+        ]
+      }
+    },
+    "guarantee": {
+      "title": "Our Commitment to Excellence",
+      "description": "We stand behind our work with comprehensive guarantees and ongoing support to ensure your success.",
+      "features": [
+        "100% Satisfaction Guarantee",
+        "On-time Delivery Promise",
+        "Ongoing Support & Maintenance"
+      ]
+    }
+  },
+  "buy": {
+    "title": "Complete Your Order",
+    "subtitle": "You're one step away from transforming your digital presence",
+    "selectPlan": "Select Your Plan",
+    "selectThis": "Select This Plan",
+    "orderSummary": "Order Summary",
+    "plan": "Plan",
+    "price": "Price",
+    "total": "Total",
+    "contactDetails": "Contact Details",
+    "back": "Back",
+    "continue": "Continue to Payment",
+    "processing": "Processing...",
+    "orderCreated": "Order Created Successfully!",
+    "orderCode": "Order Code",
+    "paymentInstructions": "Payment Instructions",
+    "paymentDescription": "Please complete your payment using one of the methods below and include your order code in the payment reference.",
+    "important": "Important",
+    "includeOrderCode": "Please include your order code in the payment reference to ensure quick processing.",
+    "backToHome": "Back to Home",
+    "form": {
+      "name": "Full Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "company": "Company Name (Optional)",
+      "notes": "Additional Notes (Optional)"
+    }
   }
 }
 

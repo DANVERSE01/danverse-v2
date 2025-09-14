@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { NextRequest } from 'next/server';
 import crypto from 'crypto';
 
 export function cn(...inputs: ClassValue[]) {
@@ -45,8 +46,19 @@ export function rateLimit(
   return { success: true, remaining: limit - current.count, resetTime: current.resetTime };
 }
 
+// Rate limiting for NextRequest
+export async function rateLimitRequest(
+  request: NextRequest,
+  limit: number = 10,
+  windowMs: number = 60000
+): Promise<{ success: boolean; remaining: number }> {
+  const ip = getClientIP(request);
+  const result = rateLimit(ip, limit, windowMs);
+  return { success: result.success, remaining: result.remaining };
+}
+
 // Get client IP address
-export function getClientIP(request: Request): string {
+export function getClientIP(request: Request | NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for');
   const realIP = request.headers.get('x-real-ip');
   const cfConnectingIP = request.headers.get('cf-connecting-ip');

@@ -1,47 +1,175 @@
-@import "tailwindcss";
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
-/* Dark cosmic theme as default */
+/* Import fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap');
+
+/* Root variables */
 :root {
-  --background: #020617; /* dark-950 */
-  --foreground: #f8fafc; /* dark-50 */
+  --font-inter: 'Inter', sans-serif;
+  --font-noto-naskh-arabic: 'Noto Naskh Arabic', serif;
+  
+  /* Neon color variables */
+  --neon-pink: #FF2BD7;
+  --neon-blue: #00E5FF;
+  --neon-red: #FF2A2A;
+  --neon-yellow: #FAFF00;
+  --neon-green: #39FF14;
+  --neon-gold: #FFC400;
+  
+  /* Dark theme variables */
+  --dark-950: #0a0a0b;
+  --dark-900: #1a1a1b;
+  --dark-800: #2a2a2b;
+  
+  --background: #0a0a0b;
+  --foreground: #ffffff;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-geist-mono);
+/* Base styles */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
-/* Ensure dark theme is always applied */
 html {
-  background: #020617;
-  color: #f8fafc;
+  scroll-behavior: smooth;
+  background: var(--dark-950);
+  color: white;
 }
 
 body {
-  background: #020617;
-  color: #f8fafc;
-  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter);
+  background: var(--dark-950);
+  color: white;
+  overflow-x: hidden;
+  line-height: 1.6;
   min-height: 100vh;
 }
 
-/* Custom scrollbar for dark theme */
+/* Arabic text styling */
+[dir="rtl"] {
+  font-family: var(--font-noto-naskh-arabic);
+}
+
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: var(--dark-900);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #6366f1;
+  background: linear-gradient(135deg, var(--neon-pink), var(--neon-blue));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4f46e5;
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
+}
+
+/* Selection styling */
+::selection {
+  background: rgba(255, 43, 215, 0.3);
+  color: white;
+}
+
+::-moz-selection {
+  background: rgba(255, 43, 215, 0.3);
+  color: white;
+}
+
+/* Neon glow utilities */
+.neon-glow {
+  filter: drop-shadow(0 0 10px currentColor);
+}
+
+.neon-glow-strong {
+  filter: drop-shadow(0 0 20px currentColor) drop-shadow(0 0 40px currentColor);
+}
+
+/* Glassmorphism utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Neon button styles */
+.btn-neon {
+  position: relative;
+  padding: 12px 24px;
+  background: transparent;
+  border: 2px solid var(--neon-pink);
+  color: var(--neon-pink);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.btn-neon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 43, 215, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-neon:hover::before {
+  left: 100%;
+}
+
+.btn-neon:hover {
+  color: white;
+  background: var(--neon-pink);
+  box-shadow: 0 0 20px var(--neon-pink), 0 0 40px var(--neon-pink);
+  transform: translateY(-2px);
+}
+
+/* Neon text effects */
+.text-neon {
+  color: var(--neon-pink);
+  text-shadow: 0 0 10px currentColor;
+}
+
+.text-neon-blue {
+  color: var(--neon-blue);
+  text-shadow: 0 0 10px currentColor;
+}
+
+.text-neon-green {
+  color: var(--neon-green);
+  text-shadow: 0 0 10px currentColor;
+}
+
+.text-neon-yellow {
+  color: var(--neon-yellow);
+  text-shadow: 0 0 10px currentColor;
+}
+
+/* Animated background patterns */
+.cosmic-bg {
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255, 43, 215, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(0, 229, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(57, 255, 20, 0.05) 0%, transparent 50%),
+    var(--dark-950);
 }
 
 /* Smooth animations */
@@ -50,3 +178,49 @@ body {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
+
+/* Focus styles for accessibility */
+button:focus,
+a:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--neon-blue);
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .glass {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid white;
+  }
+  
+  .text-gray-400 {
+    color: #ffffff !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
+

@@ -11,9 +11,12 @@
   "dependencies": {
     "@react-three/drei": "^10.7.6",
     "@react-three/fiber": "^9.3.0",
+    "@react-three/postprocessing": "^3.0.4",
     "@supabase/supabase-js": "^2.57.4",
     "@types/three": "^0.180.0",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.23.12",
+    "leva": "^0.10.0",
     "next": "15.5.3",
     "next-intl": "^4.3.8",
     "react": "19.1.0",

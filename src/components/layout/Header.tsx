@@ -27,6 +27,7 @@ export default function Header({ locale }: HeaderProps) {
   const navigation = [
     { name: t('navigation.home'), href: '/' },
     { name: t('navigation.services'), href: '/services' },
+    { name: 'Offers', href: '/offers' },
     { name: t('navigation.portfolio'), href: '/portfolio' },
     { name: t('navigation.academy'), href: '/academy' },
     { name: t('navigation.about'), href: '/about' },
