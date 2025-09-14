@@ -155,7 +155,7 @@ export default function Footer({ locale }: FooterProps) {
               <div className="space-y-4 mb-8">
                 <div>
                   <p className="text-gray-400 text-sm">
-                    {t('contact.email')}
+                    {t('contact.info.email')}
                   </p>
                   <a
                     href="mailto:danverseai@outlook.com"
@@ -166,7 +166,7 @@ export default function Footer({ locale }: FooterProps) {
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">
-                    {t('contact.whatsapp')}
+                    {t('contact.info.whatsapp')}
                   </p>
                   <a
                     href="https://wa.me/201207346648"

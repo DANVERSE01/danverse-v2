@@ -6,60 +6,327 @@
     "academy": "Academy",
     "about": "About",
     "contact": "Contact",
-    "getStarted": "Get Started"
+    "getStarted": "Get Started",
+    "blog": "Blog",
+    "testimonials": "Testimonials",
+    "faq": "FAQ"
   },
   "hero": {
     "title": "Enter DANVERSE: Where innovation accelerates your success.",
     "subtitle": "We transform businesses through cutting-edge digital solutions and creative strategies that drive measurable results.",
-    "cta": "Explore Our Services"
+    "cta": "Explore Our Services",
+    "watchDemo": "Watch Demo",
+    "stats": {
+      "projects": "Projects Completed",
+      "clients": "Happy Clients",
+      "support": "Support Available"
+    }
   },
   "services": {
     "title": "Our Services",
+    "subtitle": "Comprehensive digital solutions tailored to your business needs",
     "globalCreative": {
       "title": "Global Creative Designs",
-      "description": "Striking visual identities and creative campaigns that capture attention and communicate your brand story across global markets."
+      "description": "Striking visual identities and creative campaigns that capture attention and communicate your brand story across global markets.",
+      "features": [
+        "Brand Identity Design",
+        "Creative Campaign Development",
+        "Visual Storytelling",
+        "Global Market Adaptation"
+      ]
     },
     "brandTransformation": {
       "title": "Brand Transformation",
-      "description": "Complete brand evolution strategies that align your identity with market demands and future growth opportunities."
+      "description": "Complete brand evolution strategies that align your identity with market demands and future growth opportunities.",
+      "features": [
+        "Brand Strategy Development",
+        "Market Positioning",
+        "Identity Redesign",
+        "Brand Guidelines"
+      ]
     },
     "endToEndCampaigns": {
       "title": "End-to-End Campaigns",
-      "description": "Comprehensive marketing campaigns from concept to execution, optimized for maximum engagement and conversion."
+      "description": "Comprehensive marketing campaigns from concept to execution, optimized for maximum engagement and conversion.",
+      "features": [
+        "Campaign Strategy",
+        "Multi-Channel Execution",
+        "Performance Analytics",
+        "ROI Optimization"
+      ]
     },
     "webDevelopment": {
       "title": "High-End Web Development",
-      "description": "Premium website solutions with cutting-edge technology, seamless user experiences, and exceptional performance."
+      "description": "Premium website solutions with cutting-edge technology, seamless user experiences, and exceptional performance.",
+      "features": [
+        "Custom Web Applications",
+        "Responsive Design",
+        "Performance Optimization",
+        "SEO Implementation"
+      ]
     },
     "fullStack": {
       "title": "Full-Stack Development",
-      "description": "Complete digital solutions from frontend interfaces to backend infrastructure, tailored to your business needs."
+      "description": "Complete digital solutions from frontend interfaces to backend infrastructure, tailored to your business needs.",
+      "features": [
+        "Frontend Development",
+        "Backend Architecture",
+        "Database Design",
+        "API Integration"
+      ]
     },
     "academy": {
       "title": "DANVERSE Academy",
-      "description": "Industry-leading training programs to upskill your team in the latest digital technologies and methodologies."
+      "description": "Industry-leading training programs to upskill your team in the latest digital technologies and methodologies.",
+      "features": [
+        "Professional Training",
+        "Certification Programs",
+        "Hands-on Projects",
+        "Industry Mentorship"
+      ]
     }
+  },
+  "about": {
+    "title": "About DANVERSE",
+    "subtitle": "Pioneering Digital Innovation Since Day One",
+    "description": "DANVERSE is a cutting-edge digital agency that specializes in transforming businesses through innovative technology solutions and creative strategies. Founded with a vision to bridge the gap between creativity and technology, we deliver exceptional results that drive growth and success.",
+    "mission": {
+      "title": "Our Mission",
+      "description": "To empower businesses with cutting-edge digital solutions that drive measurable growth and create lasting impact in the global marketplace."
+    },
+    "vision": {
+      "title": "Our Vision",
+      "description": "To be the leading digital transformation partner, recognized for innovation, excellence, and delivering results that exceed expectations."
+    },
+    "values": {
+      "title": "Our Values",
+      "items": [
+        {
+          "name": "Innovation",
+          "description": "Constantly pushing boundaries with cutting-edge solutions"
+        },
+        {
+          "name": "Excellence",
+          "description": "Delivering exceptional quality in every project"
+        },
+        {
+          "name": "Integrity",
+          "description": "Building trust through transparency and honesty"
+        },
+        {
+          "name": "Collaboration",
+          "description": "Working together to achieve extraordinary results"
+        }
+      ]
+    },
+    "team": {
+      "title": "Meet Our Team",
+      "founder": {
+        "name": "Mohammed Adel",
+        "role": "Founder & CEO",
+        "description": "Visionary leader with expertise in digital strategy and business transformation.",
+        "social": {
+          "instagram": "@muhammedd_adel"
+        }
+      }
+    },
+    "achievements": {
+      "title": "Our Achievements",
+      "items": [
+        "100+ Successful Projects",
+        "50+ Satisfied Clients",
+        "24/7 Support Excellence",
+        "Industry Recognition"
+      ]
+    }
+  },
+  "portfolio": {
+    "title": "Our Portfolio",
+    "subtitle": "Showcasing Excellence in Digital Innovation",
+    "description": "Explore our diverse portfolio of successful projects that demonstrate our expertise in creating impactful digital solutions.",
+    "categories": {
+      "all": "All Projects",
+      "webDev": "Web Development",
+      "branding": "Branding",
+      "campaigns": "Marketing Campaigns",
+      "academy": "Academy Projects"
+    },
+    "caseStudies": {
+      "title": "Case Studies",
+      "subtitle": "Deep dive into our most successful projects",
+      "viewCase": "View Case Study"
+    },
+    "projects": {
+      "featured": "Featured Projects",
+      "recent": "Recent Work",
+      "viewProject": "View Project",
+      "liveDemo": "Live Demo",
+      "technologies": "Technologies Used",
+      "results": "Results Achieved"
+    }
+  },
+  "testimonials": {
+    "title": "What Our Clients Say",
+    "subtitle": "Success Stories from Our Valued Partners",
+    "items": [
+      {
+        "name": "Sarah Johnson",
+        "company": "TechStart Inc.",
+        "role": "CEO",
+        "content": "DANVERSE transformed our digital presence completely. Their innovative approach and attention to detail exceeded our expectations.",
+        "rating": 5
+      },
+      {
+        "name": "Ahmed Hassan",
+        "company": "Global Ventures",
+        "role": "Marketing Director",
+        "content": "The team at DANVERSE delivered exceptional results. Our brand transformation was seamless and highly effective.",
+        "rating": 5
+      },
+      {
+        "name": "Emily Chen",
+        "company": "Creative Solutions",
+        "role": "Founder",
+        "content": "Professional, creative, and results-driven. DANVERSE is our go-to partner for all digital initiatives.",
+        "rating": 5
+      }
+    ]
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know about our services",
+    "items": [
+      {
+        "question": "What services does DANVERSE offer?",
+        "answer": "We offer comprehensive digital services including web development, brand transformation, creative campaigns, full-stack development, and professional training through DANVERSE Academy."
+      },
+      {
+        "question": "How long does a typical project take?",
+        "answer": "Project timelines vary based on scope and complexity. Simple websites take 2-4 weeks, while comprehensive brand transformations can take 8-12 weeks. We provide detailed timelines during consultation."
+      },
+      {
+        "question": "Do you work with international clients?",
+        "answer": "Yes, we work with clients globally. Our team is experienced in cross-cultural communication and can adapt our solutions for different markets and regions."
+      },
+      {
+        "question": "What is DANVERSE Academy?",
+        "answer": "DANVERSE Academy is our training division offering professional courses in digital technologies, design, and marketing. We provide certification programs and hands-on learning experiences."
+      },
+      {
+        "question": "How do you ensure project quality?",
+        "answer": "We follow rigorous quality assurance processes, conduct regular reviews, and maintain open communication throughout the project lifecycle to ensure exceptional results."
+      }
+    ]
+  },
+  "blog": {
+    "title": "Latest Insights",
+    "subtitle": "Stay updated with the latest trends in digital innovation",
+    "readMore": "Read More",
+    "readTime": "min read",
+    "categories": {
+      "all": "All Posts",
+      "technology": "Technology",
+      "design": "Design",
+      "business": "Business",
+      "academy": "Academy",
+      "trends": "Industry Trends"
+    },
+    "featured": "Featured Articles",
+    "recent": "Recent Posts",
+    "popular": "Popular Posts"
   },
   "contact": {
     "title": "Get In Touch",
-    "info": "Contact Information",
-    "whatsapp": "WhatsApp/Telegram",
-    "whatsappNumber": "+20 1207346648 (Messages Only)",
-    "email": "Email",
-    "emailAddress": "danverseai@outlook.com",
-    "instagram": "Instagram",
-    "instagramHandle": "@muhammedd_adel",
+    "subtitle": "Ready to transform your business? Let's start the conversation.",
+    "description": "We're here to help you achieve your digital goals. Reach out to us and let's discuss how we can drive your success.",
+    "info": {
+      "title": "Contact Information",
+      "whatsapp": "WhatsApp/Telegram",
+      "whatsappNumber": "+20 1207346648",
+      "email": "Email",
+      "emailAddress": "danverseai@outlook.com",
+      "instagram": "Instagram",
+      "instagramHandle": "@muhammedd_adel",
+      "response": "We typically respond within 24 hours during business days"
+    },
     "form": {
+      "title": "Send us a Message",
       "name": "Full Name",
       "email": "Email Address",
-      "phone": "Phone Number",
-      "service": "Service Interested In",
-      "company": "Company",
+      "phone": "Phone Number (Optional)",
+      "company": "Company Name (Optional)",
+      "service": "Service of Interest",
       "budget": "Budget Range",
-      "message": "Message",
+      "message": "Tell us about your project",
       "submit": "Send Message",
+      "sending": "Sending...",
+      "success": "Thank you! We'll get back to you soon.",
+      "error": "Something went wrong. Please try again.",
       "selectService": "Select a service",
       "selectBudget": "Select budget range"
+    },
+    "office": {
+      "title": "Our Office",
+      "address": "Cairo, Egypt",
+      "hours": "Mon - Fri: 9:00 AM - 6:00 PM"
+    }
+  },
+  "academy": {
+    "title": "DANVERSE Academy",
+    "subtitle": "Empowering the Next Generation of Digital Innovators",
+    "description": "Join our comprehensive training programs designed to equip you with cutting-edge skills in digital technologies and methodologies.",
+    "preEnrollment": {
+      "title": "Pre-Enrollment",
+      "subtitle": "Be the first to know when enrollment opens",
+      "description": "Register your interest and get early access to our upcoming courses.",
+      "benefits": [
+        "Early access to course materials",
+        "Special launch pricing",
+        "Priority enrollment",
+        "Exclusive resources"
+      ],
+      "form": {
+        "name": "Full Name",
+        "email": "Email Address",
+        "phone": "Phone Number",
+        "interest": "Area of Interest",
+        "experience": "Experience Level",
+        "goals": "Learning Goals",
+        "submit": "Register Interest",
+        "success": "Thank you for your interest! We'll notify you when enrollment opens."
+      }
+    },
+    "courses": {
+      "title": "Available Courses",
+      "webDev": {
+        "title": "Full-Stack Web Development",
+        "description": "Master modern web development with React, Next.js, and backend technologies.",
+        "duration": "12 weeks",
+        "level": "Beginner to Advanced"
+      },
+      "design": {
+        "title": "Digital Design & Branding",
+        "description": "Learn professional design principles and brand identity creation.",
+        "duration": "8 weeks",
+        "level": "Beginner to Intermediate"
+      },
+      "marketing": {
+        "title": "Digital Marketing & Campaigns",
+        "description": "Develop expertise in digital marketing strategies and campaign management.",
+        "duration": "10 weeks",
+        "level": "Beginner to Advanced"
+      }
+    },
+    "features": {
+      "title": "Why Choose DANVERSE Academy?",
+      "items": [
+        "Industry-expert instructors",
+        "Hands-on project experience",
+        "Professional certification",
+        "Career placement assistance",
+        "Lifetime access to resources",
+        "Community support network"
+      ]
     }
   },
   "footer": {
@@ -67,20 +334,42 @@
     "services": "Services",
     "resources": "Resources",
     "legal": "Legal",
-    "copyright": "© 2024 DANVERSE - by Dan / Muhammed Adel. All rights reserved.",
+    "connect": "Connect With Us",
+    "newsletter": {
+      "title": "Stay Updated",
+      "description": "Subscribe to our newsletter for the latest insights and updates.",
+      "placeholder": "Enter your email",
+      "subscribe": "Subscribe"
+    },
+    "copyright": "© 2024 DANVERSE - by Dan / Mohammed Adel. All rights reserved.",
     "privacyPolicy": "Privacy Policy",
-    "terms": "Terms of Service"
+    "terms": "Terms of Service",
+    "madeWith": "Made with ❤️ using Next.js & Supabase"
   },
   "consent": {
     "message": "We use cookies and analytics to improve your experience. By continuing, you agree to our use of these technologies.",
     "accept": "Accept All",
-    "reject": "Reject All"
+    "reject": "Reject All",
+    "customize": "Customize"
   },
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
     "success": "Success!",
-    "enable3D": "Enable 3D Experience"
+    "enable3D": "Enable 3D Experience",
+    "learnMore": "Learn More",
+    "getStarted": "Get Started",
+    "viewAll": "View All",
+    "comingSoon": "Coming Soon",
+    "close": "Close",
+    "open": "Open",
+    "menu": "Menu",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "share": "Share",
+    "download": "Download",
+    "print": "Print"
   }
 }
 
