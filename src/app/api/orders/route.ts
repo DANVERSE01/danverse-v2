@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: 'Invalid order data',
-          details: validationResult.error.errors 
+          details: validationResult.error.issues 
         },
         { status: 400 }
       );
@@ -76,12 +76,12 @@ export async function POST(request: NextRequest) {
 
     // Send order confirmation email
     const emailService = EmailService.getInstance();
-    emailService.sendOrderConfirmation(createdOrder).catch(error => {
+    emailService.sendLeadConfirmation(createdOrder, 'en').catch(error => {
       console.error('Failed to send order confirmation email:', error);
     });
 
     // Send admin notification
-    emailService.sendOrderNotification(createdOrder).catch(error => {
+    emailService.sendLeadNotification(createdOrder).catch(error => {
       console.error('Failed to send admin order notification:', error);
     });
 
@@ -145,7 +145,7 @@ export async function PUT(request: NextRequest) {
     // Send status update email if order is confirmed
     if (status === 'confirmed') {
       const emailService = EmailService.getInstance();
-      emailService.sendPaymentConfirmation(updatedOrder).catch(error => {
+      emailService.sendLeadConfirmation(updatedOrder, 'en').catch(error => {
         console.error('Failed to send payment confirmation email:', error);
       });
     }

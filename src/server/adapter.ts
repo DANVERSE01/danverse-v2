@@ -102,8 +102,8 @@ async function decryptData(jwe: string): Promise<any> {
 }
 
 // Cookie helpers for persistence
-function setCookieData(key: string, data: any) {
-  const cookieStore = cookies();
+async function setCookieData(key: string, data: any) {
+  const cookieStore = await cookies();
   cookieStore.set(`preview_${key}`, JSON.stringify(data), {
     maxAge: 7 * 24 * 60 * 60, // 7 days
     httpOnly: true,
@@ -112,9 +112,9 @@ function setCookieData(key: string, data: any) {
   });
 }
 
-function getCookieData(key: string): any {
+async function getCookieData(key: string): Promise<any> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const data = cookieStore.get(`preview_${key}`)?.value;
     return data ? JSON.parse(data) : null;
   } catch {
@@ -132,7 +132,7 @@ class ProductionAdapter implements DataAdapter {
     
     // Parse SMTP URL
     const smtpUrl = new URL(env.SMTP_URL!);
-    this.transporter = nodemailer.createTransporter({
+    this.transporter = nodemailer.createTransport({
       host: smtpUrl.hostname,
       port: parseInt(smtpUrl.port) || 587,
       secure: smtpUrl.protocol === 'smtps:',
@@ -270,9 +270,9 @@ class PreviewAdapter implements DataAdapter {
     this.loadFromCookies();
   }
 
-  private loadFromCookies() {
-    const leadsData = getCookieData('leads');
-    const ordersData = getCookieData('orders');
+  private async loadFromCookies() {
+    const leadsData = await getCookieData('leads');
+    const ordersData = await getCookieData('orders');
     
     if (leadsData) {
       Object.entries(leadsData).forEach(([id, lead]) => {
@@ -287,9 +287,9 @@ class PreviewAdapter implements DataAdapter {
     }
   }
 
-  private saveToCookies() {
-    setCookieData('leads', Object.fromEntries(previewData.leads));
-    setCookieData('orders', Object.fromEntries(previewData.orders));
+  private async saveToCookies() {
+    await setCookieData('leads', Object.fromEntries(previewData.leads));
+    await setCookieData('orders', Object.fromEntries(previewData.orders));
   }
 
   async createLead(data: Omit<Lead, 'id' | 'created_at'>) {
@@ -301,7 +301,7 @@ class PreviewAdapter implements DataAdapter {
     };
     
     previewData.leads.set(id, lead);
-    this.saveToCookies();
+    await this.saveToCookies();
     
     return { data: lead, error: null };
   }
@@ -336,7 +336,7 @@ class PreviewAdapter implements DataAdapter {
     };
     
     previewData.orders.set(orderCode, order);
-    this.saveToCookies();
+    await this.saveToCookies();
     
     return { data: order, error: null };
   }
@@ -354,7 +354,7 @@ class PreviewAdapter implements DataAdapter {
     };
     
     previewData.orders.set(orderCode, updatedOrder);
-    this.saveToCookies();
+    await this.saveToCookies();
     
     return { data: updatedOrder, error: null };
   }
@@ -395,8 +395,8 @@ class PreviewAdapter implements DataAdapter {
     if (!this.testAccount) {
       this.testAccount = await nodemailer.createTestAccount();
     }
-    
-    const transporter = nodemailer.createTransporter({
+
+    const transporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',
       port: 587,
       secure: false,
@@ -405,16 +405,22 @@ class PreviewAdapter implements DataAdapter {
         pass: this.testAccount.pass,
       },
     });
-    
+
     const info = await transporter.sendMail({
-      from: 'preview@danverse.ai',
-      ...options,
+      from: '"DANVERSE" <noreply@danverse.ai>',
+      to: options.to,
+      subject: options.subject,
+      text: options.text,
+      html: options.html,
     });
-    
+
     const previewUrl = nodemailer.getTestMessageUrl(info);
-    console.log('📧 Ethereal email preview URL:', previewUrl);
-    
-    return { messageId: info.messageId, previewUrl };
+    console.log('Preview email:', previewUrl);
+
+    return {
+      messageId: info.messageId,
+      previewUrl: previewUrl || undefined,
+    };
   }
 
   async exportData(): Promise<string> {
@@ -450,7 +456,7 @@ class PreviewAdapter implements DataAdapter {
       }
       
       // Save to cookies
-      this.saveToCookies();
+      await this.saveToCookies();
     } catch (error) {
       throw new Error('Invalid backup data');
     }

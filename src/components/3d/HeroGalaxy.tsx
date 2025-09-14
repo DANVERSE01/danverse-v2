@@ -409,7 +409,7 @@ export default function HeroGalaxy() {
   }
   
   // Calculate DPR based on device capabilities
-  const getDPR = () => {
+  const getDPR = (): [number, number] => {
     if (isMobile) return [0.5, 1]; // Clamp DPR on mobile
     return [1, 2]; // Allow higher DPR on desktop
   };

@@ -16,6 +16,20 @@ export const leadFormSchema = z.object({
 
 export type LeadFormData = z.infer<typeof leadFormSchema>;
 
+// Order form validation schema
+export const orderFormSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100, 'Name is too long'),
+  email: z.string().email('Invalid email address').max(255, 'Email is too long'),
+  phone: z.string().min(1, 'Phone is required').max(20, 'Phone is too long'),
+  service: z.string().min(1, 'Service is required'),
+  package_type: z.string().min(1, 'Package type is required'),
+  total_amount: z.number().positive('Amount must be positive'),
+  currency: z.string().default('EGP'),
+  payment_method: z.string().default('manual'),
+});
+
+export type OrderFormData = z.infer<typeof orderFormSchema>;
+
 // Budget range options
 export const budgetRanges = [
   { value: 'under-5k', label: 'Under $5,000' },
