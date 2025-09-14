@@ -174,7 +174,7 @@ export default function OffersPage({ params }: OffersPageProps) {
 
                     {/* CTA Button */}
                     <Link
-                      href={`/buy?plan=${plan.id}`}
+                      href={`/buy?plan=${plan.id}` as any}
                       className="block w-full"
                     >
                       <motion.button

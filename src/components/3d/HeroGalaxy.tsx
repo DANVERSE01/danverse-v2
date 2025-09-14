@@ -188,7 +188,7 @@ function Scene() {
   });
   
   return (
-    <group onClick={handleClick} style={{ cursor: 'pointer' }}>
+    <group onClick={handleClick}>
       {/* Starfield background */}
       <Stars 
         radius={100} 

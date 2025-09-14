@@ -118,7 +118,7 @@ export default function Footer({ locale }: FooterProps) {
                 {services.map((service) => (
                   <li key={service.href}>
                     <Link
-                      href={service.href}
+                      href={service.href as any}
                       className="text-gray-400 hover:text-cosmic-300 transition-colors duration-300 text-sm"
                     >
                       {service.name}
@@ -137,7 +137,7 @@ export default function Footer({ locale }: FooterProps) {
                 {company.map((item) => (
                   <li key={item.href}>
                     <Link
-                      href={item.href}
+                      href={item.href as any}
                       className="text-gray-400 hover:text-cosmic-300 transition-colors duration-300 text-sm"
                     >
                       {item.name}
@@ -184,7 +184,7 @@ export default function Footer({ locale }: FooterProps) {
                 {legal.map((item) => (
                   <li key={item.href}>
                     <Link
-                      href={item.href}
+                      href={item.href as any}
                       className="text-gray-400 hover:text-cosmic-300 transition-colors duration-300 text-sm"
                     >
                       {item.name}

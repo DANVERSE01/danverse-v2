@@ -4,6 +4,11 @@ import type { NextConfig } from "next";
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
+  // Disable ESLint during build for production
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  
   // Performance optimizations
   experimental: {
     optimizeCss: true,

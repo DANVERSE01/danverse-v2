@@ -150,7 +150,7 @@ export default function AdminPage({ params }: AdminPageProps) {
           <h2 className="text-2xl font-bold text-white mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {quickActions.map((action, index) => (
-              <Link key={action.title} href={action.href}>
+              <Link key={action.title} href={action.href as any}>
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}

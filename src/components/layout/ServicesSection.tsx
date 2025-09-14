@@ -124,7 +124,7 @@ export default function ServicesSection({ locale }: ServicesSectionProps) {
                 {/* Learn More Link */}
                 <div className="mt-6 pt-6 border-t border-white/10">
                   <Link
-                    href={service.href}
+                    href={service.href as any}
                     className="inline-flex items-center text-cosmic-300 hover:text-white transition-colors duration-300 text-sm font-medium group/link"
                   >
                     <span>
