@@ -1,21 +1,27 @@
 import { createClient } from '@supabase/supabase-js';
+import { usePreviewAdapter, leadsAdapter, ordersAdapter } from './adapter';
 
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE!;
+let supabaseClient: any;
 
-if (!supabaseUrl || !supabaseServiceRoleKey) {
-  throw new Error('Missing Supabase environment variables');
+if (usePreviewAdapter) {
+  console.log('Using Secretless Preview Mode Adapter');
+  supabaseClient = {
+    from: (table: string) => {
+      if (table === 'leads') return leadsAdapter;
+      if (table === 'orders') return ordersAdapter;
+      return { 
+        select: () => ({ eq: () => ({ single: () => ({ data: null, error: null }) }) }),
+        insert: async () => ({ data: null, error: new Error('Table not found in preview mode') })
+      };
+    }
+  };
+} else {
+  const supabaseUrl = process.env.SUPABASE_URL!;
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
+  supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 }
 
-// Create a single supabase client for interacting with your database
-export const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-});
-
-// Database types
+export const supabase = supabaseClient;
 export interface Lead {
   id: string;
   name?: string;
