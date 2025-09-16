@@ -5,13 +5,7 @@ import { Link } from '@/i18n/routing';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 
-interface OffersPageProps {
-  params: {
-    locale: string;
-  };
-}
-
-export default function OffersPage({ params }: OffersPageProps) {
+export default function OffersPage() {
   const t = useTranslations();
   const [hoveredPlan, setHoveredPlan] = useState<string | null>(null);
 

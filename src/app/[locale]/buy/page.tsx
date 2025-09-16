@@ -6,13 +6,7 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-interface BuyPageProps {
-  params: {
-    locale: string;
-  };
-}
-
-export default function BuyPage({ params }: BuyPageProps) {
+export default function BuyPage() {
   const t = useTranslations();
   const searchParams = useSearchParams();
   const [selectedPlan, setSelectedPlan] = useState<string>('');

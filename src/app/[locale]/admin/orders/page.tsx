@@ -22,13 +22,7 @@ interface Order {
   paid_at?: string;
 }
 
-interface OrdersPageProps {
-  params: {
-    locale: string;
-  };
-}
-
-export default function AdminOrdersPage({ params }: OrdersPageProps) {
+export default function AdminOrdersPage() {
   const t = useTranslations();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);

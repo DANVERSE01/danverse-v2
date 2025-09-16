@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabase';
 import { requireAdminAuth } from '@/lib/auth';
 import { rateLimitRequest } from '@/lib/utils';
 
+export const runtime = 'nodejs';
+
 export async function GET(request: NextRequest) {
   // Admin authentication
   const authResult = requireAdminAuth(request);

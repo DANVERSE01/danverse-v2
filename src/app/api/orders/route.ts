@@ -1,6 +1,7 @@
+export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { supabase } from '@/lib/supabase';
+import { supabase, isPreviewMode } from '@/lib/supabase';
 import { rateLimitRequest } from '@/lib/utils';
 
 // Order creation schema
@@ -11,14 +12,31 @@ const createOrderSchema = z.object({
   phone: z.string().min(10, 'Phone number must be at least 10 characters'),
   company: z.string().optional(),
   notes: z.string().optional(),
+  method: z.enum(['instapay', 'vodafone', 'bank']).default('instapay'),
 });
 
 // Plan pricing configuration
 const PLAN_PRICING = {
-  starter: { amount: 2999, currency: 'USD' },
-  professional: { amount: 7999, currency: 'USD' },
-  enterprise: { amount: 19999, currency: 'USD' },
-};
+  starter: { amount: 2999, currency: 'EGP' },
+  professional: { amount: 7999, currency: 'EGP' },
+  enterprise: { amount: 19999, currency: 'EGP' },
+} as const;
+
+function buildPaymentTemplate(method: 'instapay'|'vodafone'|'bank', amount: number, code: string): string {
+  const alias = process.env.INSTA_ALIAS || 'muhamedadel69@instapay';
+  const vodafone = process.env.VODAFONE_CASH_NUMBER || '+20 106 941 5658';
+  const bankName = process.env.BANK_NAME || 'CIB';
+  const bankAccName = process.env.BANK_ACCOUNT_NAME || 'MOHAMED ADEL';
+  const bankAccNum = process.env.BANK_ACCOUNT_NUMBER || '100065756317';
+
+  if (method === 'instapay') {
+    return `Send ${amount} EGP to **${alias}**. Note **${code}**. Then submit ref.`;
+  }
+  if (method === 'vodafone') {
+    return `Send ${amount} EGP to **${vodafone}**. Message **${code}**.`;
+  }
+  return `Transfer ${amount} EGP → **Bank: ${bankName}**, **Account name: ${bankAccName}**, **Account no.: ${bankAccNum}**. Ref **${code}**.`;
+}
 
 // Generate unique order code
 function generateOrderCode(): string {
@@ -28,16 +46,17 @@ function generateOrderCode(): string {
 }
 
 // Send order confirmation email
-async function sendOrderConfirmationEmail(orderData: any) {
+async function sendOrderConfirmationEmail(orderData: unknown) {
   // In production, integrate with email service (SendGrid, Resend, etc.)
-  console.log('Order confirmation email would be sent to:', orderData.customer_email);
-  console.log('Order details:', orderData);
+  if (!isPreviewMode) return;
+  console.log('Preview Mode: Order confirmation email would be sent.');
 }
 
 // Send admin notification
-async function sendAdminNotification(orderData: any) {
+async function sendAdminNotification(orderData: unknown) {
   // In production, send notification to admin
-  console.log('Admin notification for new order:', orderData.order_code);
+  if (!isPreviewMode) return;
+  console.log('Preview Mode: Admin notification for new order');
 }
 
 export async function POST(request: NextRequest) {
@@ -67,6 +86,9 @@ export async function POST(request: NextRequest) {
     // Generate order code
     const orderCode = generateOrderCode();
 
+    const paymentInstructions = buildPaymentTemplate(validatedData.method, planPricing.amount, orderCode);
+    const whatsappText = encodeURIComponent(`Order ${orderCode} – I sent ${planPricing.amount} via ${validatedData.method}.`);
+
     // Create order in database
     const { data: order, error } = await supabase
       .from('orders')
@@ -80,7 +102,9 @@ export async function POST(request: NextRequest) {
         notes: validatedData.notes || null,
         amount: planPricing.amount,
         currency: planPricing.currency,
-        status: 'pending',
+        status: 'awaiting_proof',
+        payment_method: validatedData.method,
+        payment_instructions: paymentInstructions,
       })
       .select()
       .single();
@@ -124,6 +148,9 @@ export async function POST(request: NextRequest) {
         amount: order.amount,
         currency: order.currency,
         status: order.status,
+        paymentMethod: order.payment_method,
+        paymentInstructions,
+        whatsappDeeplink: `https://wa.me/?text=${whatsappText}`,
       },
     });
 
@@ -134,7 +161,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: 'Validation failed',
-          details: (error as any).errors.map((e: any) => ({
+          details: (error as unknown as { errors: Array<{ path: (string|number)[]; message: string }> }).errors.map((e) => ({
             field: e.path.join('.'),
             message: e.message,
           }))
@@ -173,7 +200,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Validate status
-    const validStatuses = ['pending', 'paid', 'cancelled', 'refunded'];
+    const validStatuses = ['awaiting_proof', 'pending', 'paid', 'cancelled', 'refunded'];
     if (!validStatuses.includes(status)) {
       return NextResponse.json(
         { error: 'Invalid status' },
@@ -182,7 +209,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update order
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       status,
       updated_at: new Date().toISOString(),
     };

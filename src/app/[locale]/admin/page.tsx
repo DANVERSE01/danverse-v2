@@ -5,11 +5,6 @@ import { Link } from '@/i18n/routing';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
-interface AdminPageProps {
-  params: {
-    locale: string;
-  };
-}
 
 interface DashboardStats {
   totalLeads: number;
@@ -20,7 +15,7 @@ interface DashboardStats {
   recentActivity: any[];
 }
 
-export default function AdminPage({ params }: AdminPageProps) {
+export default function AdminPage() {
   const t = useTranslations();
   const [stats, setStats] = useState<DashboardStats>({
     totalLeads: 0,
