@@ -1,21 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isPreviewMode } from '@/server/adapter';
+import { dataAdapter } from '@/server/adapter';
 
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
+    const isPreview = dataAdapter.isPreviewMode();
+    
     return NextResponse.json({
       status: 'ok',
-      mode: isPreviewMode ? 'preview' : 'production',
+      mode: isPreview ? 'preview' : 'production',
       timestamp: new Date().toISOString(),
       version: '2.0.0',
       features: {
-        secretlessPreview: isPreviewMode,
+        secretlessPreview: isPreview,
         dataAdapter: true,
-        jweBackup: isPreviewMode,
-        etherealEmail: isPreviewMode,
-        cookiePersistence: isPreviewMode,
+        jweBackup: isPreview,
+        etherealEmail: isPreview,
+        cookiePersistence: isPreview,
       }
     });
   } catch (error) {

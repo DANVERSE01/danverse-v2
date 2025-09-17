@@ -28,16 +28,8 @@ export async function GET(request: NextRequest) {
     const format = searchParams.get('format'); // 'csv' for export
 
     // Get orders using adapter
-    let orders;
-    if (status && status !== 'all') {
-      const { data, error } = await dataAdapter.findOrders({ status });
-      if (error) throw error;
-      orders = data;
-    } else {
-      const { data, error } = await dataAdapter.getAllOrders();
-      if (error) throw error;
-      orders = data;
-    }
+    const { data: orders, error } = await dataAdapter.getAllOrders();
+    if (error) throw error;
 
     // Return CSV format
     if (format === 'csv') {

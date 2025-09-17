@@ -1,14 +1,10 @@
 import { z } from 'zod';
 import nodemailer from 'nodemailer';
-import { createClient } from '@supabase/supabase-js';
 import { EncryptJWT, jwtDecrypt } from 'jose';
 import { cookies } from 'next/headers';
 
 // Environment validation
 const envSchema = z.object({
-  SUPABASE_URL: z.string().optional(),
-  SUPABASE_ANON_KEY: z.string().optional(),
-  SUPABASE_SERVICE_ROLE: z.string().optional(),
   SMTP_URL: z.string().optional(),
   RATE_LIMIT_SECRET: z.string().min(32),
 });
@@ -16,11 +12,7 @@ const envSchema = z.object({
 const env = envSchema.parse(process.env);
 
 // Check if we have production secrets
-const hasProductionSecrets = !!(
-  env.SUPABASE_URL && 
-  env.SUPABASE_ANON_KEY && 
-  env.SMTP_URL
-);
+const hasProductionSecrets = !!(env.SMTP_URL);
 
 // Data types
 export interface Lead {
@@ -28,289 +20,142 @@ export interface Lead {
   name: string;
   email: string;
   phone?: string;
-  company?: string;
   message?: string;
   created_at?: string;
 }
 
 export interface Order {
   id?: string;
-  order_code?: string;
   name: string;
   email: string;
   phone: string;
   service: string;
-  package_type: string;
-  total_amount: number;
-  currency: string;
-  payment_method: string;
-  status: string;
+  budget: string;
+  timeline: string;
+  description?: string;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   created_at?: string;
   updated_at?: string;
 }
 
-// Abstract adapter interface
+// Data adapter interface
 export interface DataAdapter {
-  // Leads
-  createLead(data: Omit<Lead, 'id' | 'created_at'>): Promise<{ data: Lead | null; error: Error | null }>;
-  getLeadsCount(): Promise<{ count: number; error: Error | null }>;
-  getRecentLeads(limit: number): Promise<{ data: Lead[]; error: Error | null }>;
-  getAllLeads(): Promise<{ data: Lead[]; error: Error | null }>;
-  
-  // Orders
-  createOrder(data: Omit<Order, 'id' | 'order_code' | 'created_at'>): Promise<{ data: Order | null; error: Error | null }>;
-  updateOrder(orderCode: string, data: Partial<Order>): Promise<{ data: Order | null; error: Error | null }>;
-  findOrders(filter: Partial<Order>): Promise<{ data: Order[]; error: Error | null }>;
-  getOrdersCount(filter?: Partial<Order>): Promise<{ count: number; error: Error | null }>;
-  getRecentOrders(limit: number): Promise<{ data: Order[]; error: Error | null }>;
-  getAllOrders(): Promise<{ data: Order[]; error: Error | null }>;
-  
-  // Email
-  sendEmail(options: {
-    to: string;
-    subject: string;
-    text?: string;
-    html?: string;
-  }): Promise<{ messageId: string; previewUrl?: string }>;
-  
-  // Preview mode specific
-  exportData?(): Promise<string>; // JWE encrypted backup
-  importData?(jweData: string): Promise<void>;
+  createLead(data: Omit<Lead, 'id' | 'created_at'>): Promise<{ data: Lead | null; error: any }>;
+  getLeadsCount(): Promise<{ data: number; error: any }>;
+  getRecentLeads(limit?: number): Promise<{ data: Lead[]; error: any }>;
+  createOrder(data: Omit<Order, 'id' | 'created_at' | 'updated_at'>): Promise<{ data: Order | null; error: any }>;
+  updateOrder(id: string, data: Partial<Order>): Promise<{ data: Order | null; error: any }>;
+  getOrdersCount(): Promise<{ data: number; error: any }>;
+  getRecentOrders(limit?: number): Promise<{ data: Order[]; error: any }>;
+  getAllOrders(): Promise<{ data: Order[]; error: any }>;
+  sendEmail(options: { to: string; subject: string; text?: string; html?: string }): Promise<{ messageId: string; previewUrl?: string }>;
+  exportData(): Promise<string>;
+  importData(jweData: string): Promise<void>;
   isPreviewMode(): boolean;
 }
 
-// In-memory stores for preview mode
+// Encryption utilities
+const secret = new TextEncoder().encode(env.RATE_LIMIT_SECRET);
+
+async function encryptData(data: any): Promise<string> {
+  const jwt = await new EncryptJWT({ data })
+    .setProtectedHeader({ alg: 'dir', enc: 'A256GCM' })
+    .setIssuedAt()
+    .setExpirationTime('30d')
+    .encrypt(secret);
+  
+  return jwt;
+}
+
+async function decryptData(jwe: string): Promise<any> {
+  const { payload } = await jwtDecrypt(jwe, secret);
+  return payload.data;
+}
+
+// In-memory storage for preview mode
 const previewData = {
   leads: new Map<string, Lead>(),
   orders: new Map<string, Order>(),
 };
 
-// JWE encryption/decryption helpers
-const secret = new TextEncoder().encode(env.RATE_LIMIT_SECRET);
-
-async function encryptData(data: any): Promise<string> {
-  return await new EncryptJWT(data)
-    .setProtectedHeader({ alg: 'dir', enc: 'A256GCM' })
-    .setIssuedAt()
-    .setExpirationTime('7d')
-    .encrypt(secret);
-}
-
-async function decryptData(jwe: string): Promise<any> {
-  const { payload } = await jwtDecrypt(jwe, secret);
-  return payload;
-}
-
-// Cookie helpers for persistence
-async function setCookieData(key: string, data: any) {
-  const cookieStore = await cookies();
-  cookieStore.set(`preview_${key}`, JSON.stringify(data), {
-    maxAge: 7 * 24 * 60 * 60, // 7 days
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-  });
-}
-
-async function getCookieData(key: string): Promise<any> {
-  try {
-    const cookieStore = await cookies();
-    const data = cookieStore.get(`preview_${key}`)?.value;
-    return data ? JSON.parse(data) : null;
-  } catch {
-    return null;
-  }
-}
-
-// Production Adapter
-class ProductionAdapter implements DataAdapter {
-  private supabase;
-  private transporter;
-
-  constructor() {
-    this.supabase = createClient(env.SUPABASE_URL!, env.SUPABASE_ANON_KEY!);
-    
-    // Parse SMTP URL
-    const smtpUrl = new URL(env.SMTP_URL!);
-    this.transporter = nodemailer.createTransport({
-      host: smtpUrl.hostname,
-      port: parseInt(smtpUrl.port) || 587,
-      secure: smtpUrl.protocol === 'smtps:',
-      auth: {
-        user: smtpUrl.username,
-        pass: smtpUrl.password,
-      },
-    });
-  }
-
-  async createLead(data: Omit<Lead, 'id' | 'created_at'>) {
-    const { data: lead, error } = await this.supabase
-      .from('leads')
-      .insert(data)
-      .select()
-      .single();
-    
-    return { data: lead, error };
-  }
-
-  async getLeadsCount() {
-    const { count, error } = await this.supabase
-      .from('leads')
-      .select('*', { count: 'exact', head: true });
-    
-    return { count: count || 0, error };
-  }
-
-  async getRecentLeads(limit: number) {
-    const { data, error } = await this.supabase
-      .from('leads')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(limit);
-    
-    return { data: data || [], error };
-  }
-
-  async getAllLeads() {
-    const { data, error } = await this.supabase
-      .from('leads')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    return { data: data || [], error };
-  }
-
-  async createOrder(data: Omit<Order, 'id' | 'order_code' | 'created_at'>) {
-    const orderCode = `DV-${Date.now()}`;
-    const orderData = { ...data, order_code: orderCode, status: 'pending' };
-    
-    const { data: order, error } = await this.supabase
-      .from('orders')
-      .insert(orderData)
-      .select()
-      .single();
-    
-    return { data: order, error };
-  }
-
-  async updateOrder(orderCode: string, data: Partial<Order>) {
-    const { data: order, error } = await this.supabase
-      .from('orders')
-      .update({ ...data, updated_at: new Date().toISOString() })
-      .eq('order_code', orderCode)
-      .select()
-      .single();
-    
-    return { data: order, error };
-  }
-
-  async findOrders(filter: Partial<Order>) {
-    let query = this.supabase.from('orders').select('*');
-    
-    Object.entries(filter).forEach(([key, value]) => {
-      query = query.eq(key, value);
-    });
-    
-    const { data, error } = await query;
-    return { data: data || [], error };
-  }
-
-  async getOrdersCount(filter?: Partial<Order>) {
-    let query = this.supabase.from('orders').select('*', { count: 'exact', head: true });
-    
-    if (filter) {
-      Object.entries(filter).forEach(([key, value]) => {
-        query = query.eq(key, value);
-      });
-    }
-    
-    const { count, error } = await query;
-    return { count: count || 0, error };
-  }
-
-  async getRecentOrders(limit: number) {
-    const { data, error } = await this.supabase
-      .from('orders')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(limit);
-    
-    return { data: data || [], error };
-  }
-
-  async getAllOrders() {
-    const { data, error } = await this.supabase
-      .from('orders')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    return { data: data || [], error };
-  }
-
-  async sendEmail(options: { to: string; subject: string; text?: string; html?: string }) {
-    const info = await this.transporter.sendMail({
-      from: process.env.SMTP_FROM || 'noreply@danverse.ai',
-      ...options,
-    });
-    
-    return { messageId: info.messageId };
-  }
-
-  isPreviewMode() {
-    return false;
-  }
-}
-
-// Preview Adapter
+// Preview adapter
 class PreviewAdapter implements DataAdapter {
-  private testAccount: nodemailer.TestAccount | null = null;
+  private testAccount: any = null;
 
   constructor() {
-    // Load data from cookies on initialization
     this.loadFromCookies();
   }
 
   private async loadFromCookies() {
-    const leadsData = await getCookieData('leads');
-    const ordersData = await getCookieData('orders');
-    
-    if (leadsData) {
-      Object.entries(leadsData).forEach(([id, lead]) => {
-        previewData.leads.set(id, lead as Lead);
-      });
-    }
-    
-    if (ordersData) {
-      Object.entries(ordersData).forEach(([id, order]) => {
-        previewData.orders.set(id, order as Order);
-      });
+    try {
+      const cookieStore = await cookies();
+      const leadsData = cookieStore.get('preview_leads')?.value;
+      const ordersData = cookieStore.get('preview_orders')?.value;
+
+      if (leadsData) {
+        const leads = await decryptData(leadsData);
+        Object.entries(leads).forEach(([id, lead]) => {
+          previewData.leads.set(id, lead as Lead);
+        });
+      }
+
+      if (ordersData) {
+        const orders = await decryptData(ordersData);
+        Object.entries(orders).forEach(([id, order]) => {
+          previewData.orders.set(id, order as Order);
+        });
+      }
+    } catch (error) {
+      console.log('No existing preview data found');
     }
   }
 
   private async saveToCookies() {
-    await setCookieData('leads', Object.fromEntries(previewData.leads));
-    await setCookieData('orders', Object.fromEntries(previewData.orders));
+    try {
+      const cookieStore = await cookies();
+      
+      const leadsObj = Object.fromEntries(previewData.leads);
+      const ordersObj = Object.fromEntries(previewData.orders);
+
+      const encryptedLeads = await encryptData(leadsObj);
+      const encryptedOrders = await encryptData(ordersObj);
+
+      cookieStore.set('preview_leads', encryptedLeads, {
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+      });
+
+      cookieStore.set('preview_orders', encryptedOrders, {
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+      });
+    } catch (error) {
+      console.error('Failed to save to cookies:', error);
+    }
   }
 
   async createLead(data: Omit<Lead, 'id' | 'created_at'>) {
-    const id = Date.now().toString();
     const lead: Lead = {
       ...data,
-      id,
+      id: `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       created_at: new Date().toISOString(),
     };
-    
-    previewData.leads.set(id, lead);
+
+    previewData.leads.set(lead.id!, lead);
     await this.saveToCookies();
-    
+
     return { data: lead, error: null };
   }
 
   async getLeadsCount() {
-    return { count: previewData.leads.size, error: null };
+    return { data: previewData.leads.size, error: null };
   }
 
-  async getRecentLeads(limit: number) {
+  async getRecentLeads(limit: number = 10) {
     const leads = Array.from(previewData.leads.values())
       .sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime())
       .slice(0, limit);
@@ -318,65 +163,44 @@ class PreviewAdapter implements DataAdapter {
     return { data: leads, error: null };
   }
 
-  async getAllLeads() {
-    const leads = Array.from(previewData.leads.values())
-      .sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime());
-    
-    return { data: leads, error: null };
-  }
-
-  async createOrder(data: Omit<Order, 'id' | 'order_code' | 'created_at'>) {
-    const orderCode = `DV-${Date.now()}`;
+  async createOrder(data: Omit<Order, 'id' | 'created_at' | 'updated_at'>) {
     const order: Order = {
       ...data,
-      id: orderCode,
-      order_code: orderCode,
+      id: `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       status: 'pending',
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
-    
-    previewData.orders.set(orderCode, order);
+
+    previewData.orders.set(order.id!, order);
     await this.saveToCookies();
-    
+
     return { data: order, error: null };
   }
 
-  async updateOrder(orderCode: string, data: Partial<Order>) {
-    const existingOrder = previewData.orders.get(orderCode);
+  async updateOrder(id: string, data: Partial<Order>) {
+    const existingOrder = previewData.orders.get(id);
     if (!existingOrder) {
       return { data: null, error: new Error('Order not found') };
     }
-    
+
     const updatedOrder = {
       ...existingOrder,
       ...data,
       updated_at: new Date().toISOString(),
     };
-    
-    previewData.orders.set(orderCode, updatedOrder);
+
+    previewData.orders.set(id, updatedOrder);
     await this.saveToCookies();
-    
+
     return { data: updatedOrder, error: null };
   }
 
-  async findOrders(filter: Partial<Order>) {
-    const orders = Array.from(previewData.orders.values()).filter(order => {
-      return Object.entries(filter).every(([key, value]) => order[key as keyof Order] === value);
-    });
-    
-    return { data: orders, error: null };
+  async getOrdersCount() {
+    return { data: previewData.orders.size, error: null };
   }
 
-  async getOrdersCount(filter?: Partial<Order>) {
-    if (filter) {
-      const { data } = await this.findOrders(filter);
-      return { count: data.length, error: null };
-    }
-    
-    return { count: previewData.orders.size, error: null };
-  }
-
-  async getRecentOrders(limit: number) {
+  async getRecentOrders(limit: number = 10) {
     const orders = Array.from(previewData.orders.values())
       .sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime())
       .slice(0, limit);
@@ -467,21 +291,90 @@ class PreviewAdapter implements DataAdapter {
   }
 }
 
-// Export the appropriate adapter
+// Production adapter (placeholder - not used in preview mode)
+class ProductionAdapter implements DataAdapter {
+  private transporter: nodemailer.Transporter;
+
+  constructor() {
+    // Parse SMTP URL
+    const smtpUrl = new URL(env.SMTP_URL!);
+    this.transporter = nodemailer.createTransport({
+      host: smtpUrl.hostname,
+      port: parseInt(smtpUrl.port) || 587,
+      secure: smtpUrl.protocol === 'smtps:',
+      auth: {
+        user: smtpUrl.username,
+        pass: smtpUrl.password,
+      },
+    });
+  }
+
+  async createLead(data: Omit<Lead, 'id' | 'created_at'>) {
+    // In preview mode, this won't be called
+    return { data: null, error: new Error('Production mode not available') };
+  }
+
+  async getLeadsCount() {
+    return { data: 0, error: null };
+  }
+
+  async getRecentLeads(limit: number = 10) {
+    return { data: [], error: null };
+  }
+
+  async createOrder(data: Omit<Order, 'id' | 'created_at' | 'updated_at'>) {
+    return { data: null, error: new Error('Production mode not available') };
+  }
+
+  async updateOrder(id: string, data: Partial<Order>) {
+    return { data: null, error: new Error('Production mode not available') };
+  }
+
+  async getOrdersCount() {
+    return { data: 0, error: null };
+  }
+
+  async getRecentOrders(limit: number = 10) {
+    return { data: [], error: null };
+  }
+
+  async getAllOrders() {
+    return { data: [], error: null };
+  }
+
+  async sendEmail(options: { to: string; subject: string; text?: string; html?: string }) {
+    const info = await this.transporter.sendMail({
+      from: '"DANVERSE" <noreply@danverse.ai>',
+      to: options.to,
+      subject: options.subject,
+      text: options.text,
+      html: options.html,
+    });
+
+    return {
+      messageId: info.messageId,
+      previewUrl: undefined,
+    };
+  }
+
+  async exportData(): Promise<string> {
+    return await encryptData({ leads: {}, orders: {}, exportedAt: new Date().toISOString() });
+  }
+
+  async importData(jweData: string): Promise<void> {
+    // Not implemented for production
+  }
+
+  isPreviewMode() {
+    return false;
+  }
+}
+
+// Create and export the adapter instance
 export const dataAdapter: DataAdapter = hasProductionSecrets 
   ? new ProductionAdapter() 
   : new PreviewAdapter();
 
-// Export preview mode status
-export const isPreviewMode = !hasProductionSecrets;
-
-// Export for client-side usage
-export function getClientData() {
-  if (!isPreviewMode) return null;
-  
-  return {
-    leads: Object.fromEntries(previewData.leads),
-    orders: Object.fromEntries(previewData.orders),
-  };
-}
+// Export utilities
+export { encryptData, decryptData };
 

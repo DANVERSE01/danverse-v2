@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
   try {
     // Get total leads count
-    const { count: totalLeads } = await dataAdapter.getLeadsCount();
+    const { data: totalLeads } = await dataAdapter.getLeadsCount();
 
     // Get recent leads for activity feed
     const { data: recentLeads } = await dataAdapter.getRecentLeads(5);

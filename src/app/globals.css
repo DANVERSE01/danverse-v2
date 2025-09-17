@@ -1,10 +1,11 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
-
-/* Import fonts */
+/* Import fonts first */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap');
+
+/* Tailwind imports */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Root variables */
 :root {
@@ -48,14 +49,10 @@ body {
   overflow-x: hidden;
   line-height: 1.6;
   min-height: 100vh;
+  position: relative;
 }
 
-/* Arabic text styling */
-[dir="rtl"] {
-  font-family: var(--font-noto-naskh-arabic);
-}
-
-/* Custom scrollbar */
+/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -84,143 +81,179 @@ body {
   color: white;
 }
 
-/* Neon glow utilities */
-.neon-glow {
-  filter: drop-shadow(0 0 10px currentColor);
+/* Focus styles */
+:focus {
+  outline: 2px solid var(--neon-pink);
+  outline-offset: 2px;
 }
 
-.neon-glow-strong {
-  filter: drop-shadow(0 0 20px currentColor) drop-shadow(0 0 40px currentColor);
+/* Button base styles */
+.btn {
+  @apply px-6 py-3 rounded-lg font-medium transition-all duration-300 cursor-pointer;
 }
 
-/* Glassmorphism utilities */
+.btn-primary {
+  @apply bg-gradient-to-r from-neon-pink to-neon-blue text-white hover:shadow-neon transform hover:scale-105;
+}
+
+.btn-secondary {
+  @apply border border-neon-blue text-neon-blue hover:bg-neon-blue hover:text-dark-950 transition-all duration-300;
+}
+
+.btn-ghost {
+  @apply text-white hover:text-neon-pink transition-colors duration-300;
+}
+
+/* Glass effect */
 .glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  @apply backdrop-blur-md bg-white/10 border border-white/20;
 }
 
 .glass-dark {
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Neon button styles */
-.btn-neon {
-  position: relative;
-  padding: 12px 24px;
-  background: transparent;
-  border: 2px solid var(--neon-pink);
-  color: var(--neon-pink);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
-
-.btn-neon::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 43, 215, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.btn-neon:hover::before {
-  left: 100%;
-}
-
-.btn-neon:hover {
-  color: white;
-  background: var(--neon-pink);
-  box-shadow: 0 0 20px var(--neon-pink), 0 0 40px var(--neon-pink);
-  transform: translateY(-2px);
+  @apply backdrop-blur-md bg-dark-900/50 border border-white/10;
 }
 
 /* Neon text effects */
 .text-neon {
-  color: var(--neon-pink);
-  text-shadow: 0 0 10px currentColor;
+  @apply text-transparent bg-clip-text bg-gradient-to-r from-neon-pink to-neon-blue;
 }
 
-.text-neon-blue {
-  color: var(--neon-blue);
-  text-shadow: 0 0 10px currentColor;
+.text-neon-glow {
+  text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink), 0 0 30px var(--neon-pink);
 }
 
-.text-neon-green {
-  color: var(--neon-green);
-  text-shadow: 0 0 10px currentColor;
+/* Card styles */
+.card {
+  @apply bg-dark-800/50 backdrop-blur-md border border-white/10 rounded-xl p-6;
 }
 
-.text-neon-yellow {
-  color: var(--neon-yellow);
-  text-shadow: 0 0 10px currentColor;
+.card-hover {
+  @apply hover:border-neon-pink/50 hover:shadow-neon-pink transition-all duration-300;
 }
 
-/* Animated background patterns */
-.cosmic-bg {
-  background: 
-    radial-gradient(circle at 20% 80%, rgba(255, 43, 215, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(0, 229, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(57, 255, 20, 0.05) 0%, transparent 50%),
-    var(--dark-950);
+/* Grid layouts */
+.grid-auto-fit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
 }
 
-/* Smooth animations */
-* {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+.grid-auto-fill {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
 }
 
-/* Focus styles for accessibility */
-button:focus,
-a:focus,
-input:focus,
-textarea:focus,
-select:focus {
-  outline: 2px solid var(--neon-blue);
-  outline-offset: 2px;
+/* Animation utilities */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
 }
 
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
 }
 
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .glass {
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid white;
+.animate-fade-in {
+  animation: fadeIn 1s ease-out;
+}
+
+/* Responsive text */
+.text-responsive {
+  font-size: clamp(1rem, 4vw, 1.5rem);
+}
+
+.text-responsive-lg {
+  font-size: clamp(1.5rem, 6vw, 3rem);
+}
+
+.text-responsive-xl {
+  font-size: clamp(2rem, 8vw, 4rem);
+}
+
+/* Container utilities */
+.container-custom {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.section-padding {
+  @apply py-16 md:py-24 lg:py-32;
+}
+
+/* Form styles */
+.form-input {
+  @apply w-full px-4 py-3 bg-dark-800/50 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-neon-pink focus:ring-2 focus:ring-neon-pink/20 transition-all duration-300;
+}
+
+.form-textarea {
+  @apply w-full px-4 py-3 bg-dark-800/50 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-neon-pink focus:ring-2 focus:ring-neon-pink/20 transition-all duration-300 resize-none;
+}
+
+.form-select {
+  @apply w-full px-4 py-3 bg-dark-800/50 border border-white/20 rounded-lg text-white focus:border-neon-pink focus:ring-2 focus:ring-neon-pink/20 transition-all duration-300;
+}
+
+/* Loading states */
+.loading {
+  @apply animate-pulse;
+}
+
+.loading-spinner {
+  @apply animate-spin rounded-full border-2 border-white/20 border-t-neon-pink;
+}
+
+/* Error states */
+.error {
+  @apply text-red-400 border-red-400;
+}
+
+.success {
+  @apply text-green-400 border-green-400;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .mobile-hidden {
+    display: none;
   }
   
-  .text-gray-400 {
-    color: #ffffff !important;
+  .mobile-full {
+    width: 100%;
+  }
+  
+  .mobile-center {
+    text-align: center;
   }
 }
 
 /* Print styles */
 @media print {
   .no-print {
-    display: none !important;
+    display: none;
   }
   
   body {
-    background: white !important;
-    color: black !important;
+    background: white;
+    color: black;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .text-neon {
+    @apply text-white;
+  }
+  
+  .btn-primary {
+    @apply bg-white text-black border-2 border-black;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
