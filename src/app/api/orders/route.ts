@@ -56,10 +56,9 @@ export async function POST(request: NextRequest) {
       email: sanitizeInput(orderData.email),
       phone: sanitizeInput(orderData.phone),
       service: sanitizeInput(orderData.service),
-      package_type: sanitizeInput(orderData.package_type),
-      total_amount: orderData.total_amount,
-      currency: orderData.currency || 'EGP',
-      payment_method: sanitizeInput(orderData.payment_method),
+      budget: sanitizeInput(orderData.package_type), // Map package_type to budget
+      timeline: '1-2 weeks', // Default timeline
+      description: '', // Default description
       status: 'pending' as const,
     };
 

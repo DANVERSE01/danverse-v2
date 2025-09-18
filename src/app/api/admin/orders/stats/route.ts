@@ -30,10 +30,10 @@ export async function GET(request: NextRequest) {
 
     const recentActivity = recentOrders?.map(order => ({
       type: 'order',
-      description: `New order ${order.order_code} from ${order.name}`,
+      description: `New order from ${order.name}`,
       timestamp: new Date(order.created_at!).toLocaleString(),
       status: order.status,
-      amount: order.total_amount,
+      service: order.service,
     })) || [];
 
     return NextResponse.json({
